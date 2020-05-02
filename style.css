@@ -1,0 +1,146 @@
+body{ 
+    background-color: #e5e5e5; 
+    color: white;
+    font-family: 'Ubuntu', sans-serif;
+}
+.section-header {
+    background: linear-gradient(120deg, #ffb3ba 20%, #ffdfba 40%, #ffffba 60%, #baffc9 80%, #bae1ff 100%);
+}
+#remindersResult{
+    width: 100%;
+    color: black !important;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.notes-style {
+    margin: 30px 15px;
+    padding: 15px;
+    background: #69b8edd4;
+    width: 25%;
+    height: 150px;
+    border-radius: 5%;
+    overflow: hidden;
+    box-shadow: 0 12px 15px 0 rgb(166, 166, 166);
+}
+.notes-style:hover{
+    cursor: pointer;
+}
+#modal-two{
+    top: 30%;
+}
+/* EDIT BUTTON START*/
+
+.wrap {
+  max-width: 200px;
+  min-width: 200px;
+  background-color: #fff;
+  position: absolute;
+  display: none;
+  z-index: 999999999;
+  box-shadow: 0 2px 6px rgb(255, 255, 255);
+  height: 44px;
+  border-radius: 5px;
+
+}
+.wrap ul{
+    padding: 0;
+}
+.wrap ul li {
+  display: block;
+  padding: 10px;
+  list-style: none;
+  color: #000;
+  cursor: default;
+}
+.wrap ul li:hover {
+  background-color: #dfdfdf;
+  border-radius: 5px;
+}
+.display {
+  display: block;
+}
+/* EDIT BUTTON END*/
+#divbtn {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    height: 90px;
+}
+.btn {
+    padding: 8px 30px;
+    margin: 0 25px;
+    color: white !important;
+    font-size:22px;
+}
+#txtarea {
+    border: 2px solid black;
+    width: 100%;
+    height: 100px;
+    background-color: lightcyan;
+    border-radius: 5px;
+} 
+.nextBtn, .doneBtn{
+    border: 2px solid black;
+    border-radius: 5px ;
+    background-color: lightslategray;
+    margin: 0;
+    float: right;
+}
+.context-menu {
+    background: #ffffff;
+    border: 1px solid white;
+    color: black;
+    font-size: 13px !important;
+    display: none;
+    width: 25%;
+    height: 5vh;
+    box-shadow: 0 12px 15px 0 rgba(23, 0, 240, 0.7);
+}
+.context-menu > h4 {
+    font-size: 15px;
+}
+section.dialog-section {
+    display: flex;
+    height: calc(100% - 20%);
+    align-items: end;
+}
+.ui-datepicker.ui-widget {
+    border: none;
+}
+.ui-datepicker .ui-datepicker-header {
+    background-color: #d65416;
+    color: #000;
+}
+.ui-datepicker-calendar td > a.ui-state-default {
+    border: none !important;
+    border-bottom-width: 1px !important;
+    border-bottom-style: solid !important;
+    border-bottom-color: #d65416 !important;
+    background: transparent !important;
+    color: #c77b1d;
+    margin-right: 10px;
+}
+.ui-datepicker-calendar td > a.ui-state-active{
+    color: white;
+    background-color: #d65416c4 !important;
+}
+.exit{
+    animation-name: task-exit;
+    animation-duration: .35s;
+    animation-fill-mode: forwards;
+}
+@keyframes task-exit{
+    from {
+        transform: perspective(400px);
+    }
+    30% {
+        transform: perspective(400px) rotate3d(1, 0, 0, -20deg);
+        opacity: 1;
+    }
+    to {
+        transform: perspective(400px) rotate3d(1, 0, 0, 90deg);
+        opacity: 0;
+    }
+}

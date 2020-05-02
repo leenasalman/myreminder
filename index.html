@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Calendar</title>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="jquery-ui/jquery-ui.css">
+        <link rel="stylesheet" href="jquery-ui/jquery-ui.structure.css">
+        <link rel="stylesheet" href="jquery-ui/jquery-ui.theme.css">
+
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+            integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <link href="https://fonts.googleapis.com/css2?family=Ubuntu&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <section class="section-header">
+            <div class="row-m-0">
+                <div id="divbtn">
+                    <button id="addbtn" class="btn btn-info">
+                        <h4 style="font-family: 'Old Standard TT', serif;">Add</h4>
+                    </button>
+                    <button id="deletebtn" class="btn btn-danger">
+                        <h4 style="font-family: 'Old Standard TT', serif;">Delete All</h4>
+                    </button>
+                    
+                </div>
+            </div>
+        </section>
+        <div class="col-lg-12">
+            <div id="remindersResult"></div>
+            
+        </div> 
+        <div class="wrap">
+            <ul>
+                <li id='editlist-btn' class="edit-btn" onclick="editClicked(noteID, noteText, noteDate);">Edit</li>
+            </ul>
+        </div>
+        <section class="dialog-section">
+            
+        <dialog id="modal-one" close>
+            <textarea rows="20" cols="70" id="txtarea" placeholder="Notes..."></textarea>
+            <button class="btn nextBtn">Choose a date</button>
+        </dialog>
+        
+        <dialog id="modal-two" close>
+            <div class='input-group date' id='datetimepicker1'>
+            </div>
+            <button class="btn doneBtn" type="submit">Done</button>
+        </dialog>
+    </section>
+    
+</body>
+<!-- <script src="‪localStorage.js"></script> -->
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+        <script src="jquery-ui/jquery-ui.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+    crossorigin="anonymous"></script>
+    
+<script> 
+    function saveData(key, value) {
+        if (localStorage) {
+            localStorage.setItem(key, value);
+        } else {
+            alert("Your browser doesnt support local storage");
+        }
+    }
+
+    function loadData(key) {
+        if (localStorage) {
+            if (key in localStorage) {
+                localStorage.getItem(key);
+            }
+        } else {
+            alert("Your browser doesnt support local storage");
+
+        }
+    }   
+
+let database;
+let Reminders = "Reminders";
+
+function Reminder(name, date){
+    this.name = name;
+    this.date = date;
+
+}
+window.onload = function(){ //function loads when tab is loaded
+    let req = window.indexedDB.open("myRemindersDB", 1); //creates DB
+    
+    req.onsuccess = function() {
+        database = req.result;
+        let result = document.getElementById("remindersResult");
+        readReminder("Reminders", function (reminders) {
+            for (let i = 0; i < reminders.length; i++) {
+                let innerHTML = '<div data-id=' + reminders[i].id + ' id="remz" class="notes-style" onclick="deleteReminder(this);" oncontextmenu="editReminder(this);">'+'Note: '+ reminders[i].name + '<br>Date: ' + reminders[i].date +'</div>';
+                result.innerHTML += innerHTML;
+            }
+        });
+    }
+    req.onerror = function(event) {
+        alert("there was an error", event);
+    }
+    req.onupgradeneeded = function(event) { 
+        let db = req.result;
+        let objectStore = db.createObjectStore(Reminders, {keyPath: 'id', autoIncrement: true});
+        
+    }
+}
+
+let defaultError = function () {
+    console.log("Something went wrong");
+}
+
+function addReminder(reminder, success, error = defaultError){
+    let transaction = database.transaction(["Reminders"], "readwrite");
+    let objectStore = transaction.objectStore("Reminders");
+
+    
+    let request = objectStore.add(reminder);
+    
+    
+    request.onerror = error;
+    request.onsuccess = success;
+    
+    
+}
+
+function readReminder(Reminders, success, error){
+    let transaction = database.transaction([Reminders], "readonly");
+    let objectStore = transaction.objectStore(Reminders);
+    
+    let request = objectStore.openCursor();
+    
+    request.onerror = error;
+    let reminders = [];
+    request.onsuccess = function(event){
+        let cursor = event.target.result;
+        if(cursor){
+            let task = cursor.value;
+            reminders.push(task);
+            
+            let key = cursor.key;
+            let value = cursor.value.name+" "+cursor.value.date;
+            console.log(key, value);
+            saveData(key, value);            
+            cursor.continue();
+            
+        } else {
+            success(reminders);
+        }
+    }
+}
+
+$(".doneBtn").on('click', function(){
+    let textAreaValue = $("#txtarea").val();
+    let reminderDate = $('#datetimepicker1').datepicker().val();
+    let reminder = new Reminder(textAreaValue, reminderDate);
+    if(textAreaValue && reminderDate){
+        addReminder(reminder, function () {
+            let result = document.getElementById("remindersResult");
+            readReminder("Reminders", function (reminders) {
+                let innerHTML;
+                for(let i = 0; i < reminders.length; i++){
+                    // console.log(reminders.length);
+                    innerHTML = '<div data-id='+reminders[i].id+' id="remz" class="notes-style" onclick="deleteReminder(this);" oncontextmenu="editReminder(this);">'+ 'Note: '+ reminder.name + '<br>Date: ' + reminder.date+ '</div>';
+                }
+                result.innerHTML += innerHTML;
+            }); 
+        }, function () {
+            console.log("Error. Reminder was not added to DB");
+        });
+    } else {
+        alert("You can't add empty notes to the TODO list");
+    }    
+});
+
+
+// Deletes one thing from database
+// COMPLETE
+function deleteReminder(element){
+    let transaction = database.transaction(["Reminders"], "readwrite");
+    let objectStore = transaction.objectStore("Reminders");
+    
+    
+    element.classList.add('exit');
+    let request = objectStore.delete(Number(element.dataset.id));
+    localStorage.removeItem(element.dataset.id);
+    request.onsuccess = function() {
+        console.log("Deleted");
+        window.location.reload();
+    }
+    request.onerror = defaultError;
+    
+}
+
+
+$("#addbtn").on("click",function (){
+    let modalOne = document.getElementById("modal-one");
+    modalOne.showModal();
+    $(".nextBtn").on("click", function () {
+        modalOne.close();
+        let modalTwo = document.getElementById("modal-two");
+        $(function () {
+            $('#datetimepicker1').datepicker();
+        });
+        modalTwo.show();
+        
+        $(".doneBtn").on("click", function () {
+            modalTwo.close();
+        }); //done button
+        
+    }); //next button
+    
+    $("#txtarea").val("");
+});//add button
+
+//delete all from db
+//COMPLETE
+function deleteAllReminders(success, error){
+    let transaction = database.transaction(["Reminders"], "readwrite");
+    let objectStore = transaction.objectStore("Reminders");
+    
+    let request = objectStore.clear();
+    
+    request.onsuccess = success;
+    
+    request.onerror = error;
+}
+$("#deletebtn").click(function(){
+    let response = confirm("Are you sure you want to delete all notes?")
+    if(response){
+        deleteAllReminders(function(){
+            alert("All data has been deleted from the DB")
+        },function(){
+            alert("an error has occurred ")
+        });
+    } 
+});
+
+//UPDATES from the db
+//NOT COMPLETE
+
+let notesBoxes = document.getElementById("remindersResult");
+$(notesBoxes).on('contextmenu','#remz', function (e) {
+    $('.wrap').css({
+        top: e.pageY,
+        left: e.pageX,
+        display: 'block',
+    });
+    return false;
+});
+$(document).click(function(e){
+    if(e.which == 1){
+        $('.wrap').hide();
+    }
+    if (e.which == 3) {
+        $('.wrap').hide();
+    }
+});
+$(document).keydown(function (e) {
+    if(e.which == 27){
+        $('.wrap').hide();
+    }
+});
+
+function editReminder(element){
+    let transaction = database.transaction(["Reminders"], "readwrite");
+    let objectStore = transaction.objectStore("Reminders");
+    let request = objectStore.get(Number(element.dataset.id));
+
+    request.onsuccess = (event) => {
+        noteID = event.target.result.id;
+        noteText = event.target.result.name;
+        noteDate = event.target.result.date;
+        let editbuttonID = document.getElementById('editlist-btn');
+        if(editbuttonID.which == 1){
+            editClicked(noteID, noteText, noteDate);
+        }
+    }  
+    request.onerror = defaultError;
+}
+function editClicked(noteID, noteText, noteDate) {
+
+    let modalOne = document.getElementById("modal-one");
+    modalOne.showModal();
+    $("#txtarea").val(noteText);
+    $(".nextBtn").on("click", function () {
+        modalOne.close();
+        let modalTwo = document.getElementById("modal-two");
+        $(function () {
+            $('#datetimepicker1').datepicker().val(noteDate);
+        });
+        modalTwo.show();
+        $(".doneBtn").on("click", function () {
+            modalTwo.close();
+            window.location.reload();
+        }); //done button
+    }); //next button
+
+    let transaction = database.transaction(["Reminders"], "readwrite");
+    let objectStore = transaction.objectStore("Reminders");
+    let request = objectStore.get(noteID);
+   
+
+    request.onsuccess = function (event) {
+        //{name:"", date:"", id:}
+        let data = request.result; 
+
+        let requestDeleteOld = objectStore.delete(data.id);
+        localStorage.removeItem(data.id);
+
+        let newTextAreaValue = $("#txtarea").val();
+        let newReminderDate = $('#datetimepicker1').datepicker().val();
+        data.name = newTextAreaValue;
+        data.date = newReminderDate;
+        
+        requestDeleteOld.onsuccess = function () {
+            console.log('edit button clicked');
+        }
+        
+        requestDeleteOld.onerror = defaultError;
+    }
+}
+</script>
+</html>
